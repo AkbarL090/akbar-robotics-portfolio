@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.local/
+recovery/
+references/
+docs/PROFILE_AND_EVIDENCE.md
+docs/ASSET_AUDIT.md
+docs/ART_DIRECTION.md
+*.zip
+*.pdf
+*.pem
+*.key
+.env*

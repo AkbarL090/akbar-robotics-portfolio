@@ -1,0 +1,20 @@
+{
+  "browser": "158.0.4370.33",
+  "checks": [
+    "WebGL2 canvas, pointer sequence and pointer leave recorded",
+    "Native scroll with scene visible",
+    "Keyboard skip link and field note activation",
+    "Layout without horizontal overflow at 360 px",
+    "Layout without horizontal overflow at 390 px",
+    "Layout without horizontal overflow at 768 px",
+    "Layout without horizontal overflow at 1280 px",
+    "Layout without horizontal overflow at 1440 px",
+    "Layout without horizontal overflow at 1920 px",
+    "Live reduced-motion preference restores photograph and removes headline animation",
+    "Context loss returns to photograph",
+    "WebGL disabled at startup retains image and text",
+    "Touch photo control and Work navigation at 390 px",
+    "No page errors, console errors or failed asset requests observed"
+  ],
+  "errors": []
+}
