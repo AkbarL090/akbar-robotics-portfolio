@@ -30,6 +30,14 @@ export function mountScene(host: HTMLElement, fullView: () => boolean) {
   grid.material.opacity = .38
   grid.position.y = .002
   scene.add(grid)
+  // A pitch marking behind the image plane gives the camera a second depth reference.
+  const boundary = new T.Line(new T.BufferGeometry().setFromPoints([
+    new T.Vector3(-3,.008,1.7),new T.Vector3(-3,.008,-3),
+    new T.Vector3(3,.008,-3),new T.Vector3(3,.008,1.7),
+  ]),new T.LineBasicMaterial({color:0x9ca893}))
+  scene.add(boundary)
+  const annotation = host.querySelector<HTMLElement>('.camera-label')
+  const head = new T.Vector3()
   const bitmap = document.createElement('canvas')
   bitmap.width = bitmap.height = 128
   const brush = bitmap.getContext('2d')!
@@ -49,9 +57,10 @@ export function mountScene(host: HTMLElement, fullView: () => boolean) {
   function move(e:PointerEvent) {
     const rect=hero.getBoundingClientRect()
     dx=T.MathUtils.clamp((e.clientX-rect.left)/rect.width*2-1,-1,1)
+    schedule()
     dy=T.MathUtils.clamp(1-(e.clientY-rect.top)/rect.height*2,-1,1)
   }
-  function reset(){dx=dy=0}
+  function reset(){dx=dy=0; schedule()}
   function schedule(){if(!frame && visible && ready && !disposed && !document.hidden) frame=requestAnimationFrame(draw)}
   function draw(now:number){
     frame=0
@@ -61,16 +70,21 @@ export function mountScene(host: HTMLElement, fullView: () => boolean) {
     const damp=(a:number,b:number)=>T.MathUtils.damp(a,b,6,dt)
     x=damp(x,dx); y=damp(y,dy); zoom=damp(zoom,Number(fullView()))
     const aspect=camera.aspect
-    const detailHeight=robotHeight*(502/1050)/(1.14*aspect)
+    const detailHeight=robotHeight*(502/1050)/(.93*aspect)
     const viewHeight=T.MathUtils.lerp(detailHeight,4.12,zoom)
     const scroll=T.MathUtils.clamp(-hero.getBoundingClientRect().top/hero.offsetHeight,0,1)
     const focus=T.MathUtils.lerp(robotHeight-detailHeight*.38,1.73,zoom)-scroll*.09
     const distance=viewHeight/(2*Math.tan(T.MathUtils.degToRad(camera.fov/2)))
-    camera.position.set(x*.24,focus+.19+y*.14+scroll*.15,distance+.13*Math.exp(-elapsed*3))
-    camera.lookAt(x*.028+Math.sin(elapsed*.55)*.004,focus+y*.023,0)
+    camera.position.set(x*.24,focus+.19+y*.14+scroll*.15,distance+.38*Math.exp(-elapsed*3)+scroll*.42)
+    camera.lookAt(x*.038,focus+y*.023,0)
     renderer.render(scene,camera)
     if(!canvas.isConnected) host.append(canvas)
-    schedule()
+    if(annotation){
+      head.set(.01,3.32,0).project(camera)
+      annotation.style.left=((head.x+1)*50)+'%'
+      annotation.style.top=((1-head.y)*50)+'%'
+    }
+    if(elapsed<2.5 || Math.abs(x-dx)+Math.abs(y-dy)+Math.abs(zoom-Number(fullView()))>.00015) schedule()
   }
   function resize(){
     camera.aspect=host.clientWidth/Math.max(1,host.clientHeight)
@@ -78,6 +92,9 @@ export function mountScene(host: HTMLElement, fullView: () => boolean) {
     renderer.setSize(host.clientWidth,host.clientHeight,false)
     schedule()
   }
+  const changes=new MutationObserver(schedule)
+  changes.observe(host,{attributes:true,attributeFilter:['class']})
+  window.addEventListener('scroll',schedule,{passive:true})
   const size=new ResizeObserver(resize)
   size.observe(host)
   const visibility=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting; if(visible)schedule(); else {cancelAnimationFrame(frame);frame=0}})
@@ -89,15 +106,18 @@ export function mountScene(host: HTMLElement, fullView: () => boolean) {
     if(disposed)return
     disposed=true
     cancelAnimationFrame(frame)
-    size.disconnect();visibility.disconnect()
+    size.disconnect();visibility.disconnect();changes.disconnect()
+    window.removeEventListener('scroll',schedule)
     hero.removeEventListener('pointermove',move);hero.removeEventListener('pointerleave',reset)
     document.removeEventListener('visibilitychange',schedule)
     canvas.removeEventListener('webglcontextlost',dispose)
-    for(const object of [floor,robot,shadow,grid]){object.geometry.dispose();object.material.dispose()}
-    photo.dispose();shade.dispose();renderer.dispose();renderer.forceContextLoss();canvas.remove()
+    for(const object of [floor,robot,shadow,grid,boundary]){object.geometry.dispose();object.material.dispose()}
+    photo.dispose();shade.dispose();renderer.dispose();renderer.forceContextLoss();canvas.remove();annotation?.removeAttribute('style')
   }
   canvas.addEventListener('webglcontextlost',dispose)
   resize()
   return dispose
 }
+
+
 
