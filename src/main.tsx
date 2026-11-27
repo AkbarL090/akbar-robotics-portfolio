@@ -15,7 +15,7 @@ function Hero(){
   return <section className="hero" aria-labelledby="headline"><RobotPlate/><div className="copy">
     <p className="eyebrow"><i className="signal-rule"/>Robotics Developer <b>/</b> Batam, Indonesia</p>
     <h1 id="headline">{['From','perception','to motion'].map((line,i)=><span key={line}><strong>{line}{i===2 && <em>.</em>}</strong>{' '}</span>)}</h1>
-    <div className="personal-intro"><p className="intro">I’m Akbar. I study how humanoid robots read the field, find their position and decide when to move.</p><p className="signature">Robotics Engineering · Politeknik Negeri Batam</p></div>
+    <div className="personal-intro"><a className="portrait-byline" href="#about" aria-label="About Muhammad Akbar Iqvi"><img src="/media/portrait.webp" width="70" height="90" alt="Muhammad Akbar Iqvi"/></a><div><p className="intro">I’m Muhammad Akbar Iqvi. I study how humanoid robots read the field, find their position and decide when to move.</p><p className="signature">Robotics Engineering · Politeknik Negeri Batam</p></div></div>
   </div></section>
 }
 
@@ -39,6 +39,15 @@ function Journal(){
     </dl></div></section>
 }
 
+function Journey(){
+  return <section className="journey section-space" id="journey"><div className="section-rule"><h2>Engineering journey</h2><span>2024 — present</span></div>
+    <ol>{[
+      ['2024','Finding my way into robotics','Polibatam’s humanoid teams and their RoboCup history drew me into robotics. I began my journey in 2024.'],
+      ['2025','Learning through projects','At the International PBL Expo, my certificate records second place in Manufacturing Fabrication Process.'],
+      ['2026','Taking the work onto the field','In Singapore I worked on Smorphi movement logic. In Incheon I participated with Barelang FC. The competition results above belong to our teams.'],
+      ['Research','Connecting perception and motion','My work spans odometry and particle filtering, goalkeeper decisions and humanoid motion. With a depth camera, I also study how a robot can estimate the slope of a surface.']
+    ].map(([time,title,description])=><li key={time}><small>{time}</small><div><h3>{title}</h3><p>{description}</p></div></li>)}</ol></section>
+}
 function About(){
   return <section id="about" className="about section-space"><div className="section-rule"><h2>About me</h2><span>Batam / Indonesia</span></div>
     <div className="bio"><figure><img src="/media/portrait.webp" loading="lazy" width="209" height="270" alt="Portrait of Muhammad Akbar Iqvi"/></figure>
@@ -53,8 +62,9 @@ function App(){
   const path=location.pathname.replace(/\/$/,'')
   const home=path===''
   const study=work.find(s=>workUrl(s)===path)
-  return <div className="page" id="top"><Header home={home}/>{home?<main id="content"><Hero/><SelectedWork/><Journal/><About/></main>:study?<Suspense fallback={<p>Opening project…</p>}><CaseStudy study={study}/></Suspense>:<main id="content"><h1>Page not found</h1><a href="/">Return to the notebook</a></main>}<Footer/></div>
+  return <div className="page" id="top"><Header home={home}/>{home?<main id="content"><Hero/><SelectedWork/><Journal/><Journey/><About/></main>:study?<Suspense fallback={<p>Opening project…</p>}><CaseStudy study={study}/></Suspense>:<main id="content"><h1>Page not found</h1><a href="/">Return to the notebook</a></main>}<Footer/></div>
 }
 createRoot(document.getElementById('root')!).render(<App/>)
+
 
 

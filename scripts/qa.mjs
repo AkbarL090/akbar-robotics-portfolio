@@ -1,4 +1,7 @@
-﻿import { chromium } from 'playwright'
+﻿
+process.env.PLAYWRIGHT_BROWSERS_PATH ||= '.local/pw-browsers'
+const { chromium } = await import('playwright')
+const channel=process.env.BROWSER_CHANNEL || (process.platform==='win32'?'msedge':'chromium')
 import assert from 'node:assert/strict'
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -8,7 +11,7 @@ const local=path.resolve('.local/browser')
 await mkdir(local,{recursive:true})
 await mkdir('review',{recursive:true})
 const browser=await chromium.launchPersistentContext(local,{
-  channel:process.env.BROWSER_CHANNEL || 'msedge', headless:true,
+  channel, headless:true,
   viewport:{width:1440,height:900},deviceScaleFactor:1,
   args:['--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-crash-reporter','--disable-breakpad']
 })
@@ -50,11 +53,15 @@ try{
   await page.getByText('Read the field note',{exact:true}).focus()
   await page.keyboard.press('Enter');assert.ok(await page.locator('details').evaluate(d=>d.open))
   passed('Keyboard skip link and field note activation')
-  for(const width of [360,390,768,1280,1440,1920]){
+  for(const width of [360,390,430,768,1280,1366,1440,1920]){
     await page.setViewportSize({width,height:width<700?844:900})
     await page.goto(origin);await page.evaluate(()=>document.fonts.ready);await canvas.waitFor();await sleep()
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))
     await shot('width-'+width)
+    if(width===1440 || width===1920){
+      await page.evaluate(async()=>{await Promise.all(Array.from(document.images,img=>{img.loading='eager';return img.decode()}))})
+      await page.screenshot({path:'review/home-'+width+'.png',fullPage:true})
+    }
     passed('Layout without horizontal overflow at '+width+' px')
   }
   await page.emulateMedia({reducedMotion:'reduce'})
@@ -77,7 +84,7 @@ try{
   assert.equal(await canvas.count(),0)
   assert.ok(await page.locator('.still').evaluate(i=>i.complete && i.naturalWidth>0))
   passed('WebGL disabled at startup retains image and text')
-  const touchBrowser=await chromium.launch({channel:process.env.BROWSER_CHANNEL || 'msedge',headless:true})
+  const touchBrowser=await chromium.launch({channel,headless:true})
   const mobile=await touchBrowser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,deviceScaleFactor:1})
   const phone=await mobile.newPage();observe(phone);await phone.goto(origin);await phone.evaluate(()=>document.fonts.ready);await phone.waitForTimeout(900)
   await phone.screenshot({path:'review/mobile-390.png',fullPage:true})
@@ -86,10 +93,43 @@ try{
   assert.ok(await phone.locator('.viewport.full').count())
   await phone.getByRole('link',{name:'Work',exact:true}).tap()
   assert.equal(new URL(phone.url()).hash,'#work')
+  await phone.goto(origin+'/work/goalkeeper')
+  await phone.locator('.pitch-control').tap({position:{x:35,y:50}})
+  assert.notEqual(await phone.getByLabel('Ball across field').inputValue(),'156')
   await touchBrowser.close()
   passed('Touch photo control and Work navigation at 390 px')
+  for(const slug of ['goalkeeper','localization','surface-inclination','smorphi','humanoid-motion']){
+    await page.setViewportSize({width:1440,height:900})
+    await page.goto(origin+'/work/'+slug)
+    await page.locator('.case-lead').waitFor()
+    await page.evaluate(async()=>{await document.fonts.ready; await Promise.all(Array.from(document.images,i=>i.decode()))})
+    await page.screenshot({path:'review/case-'+slug+'.png',fullPage:true})
+    if(slug==='goalkeeper'){
+      await page.getByLabel('Keeper advance').press('End')
+      assert.match(await page.locator('.readout').innerText(),/Retreat/)
+      await page.getByRole('button',{name:'Seek to 00:09'}).click()
+      await page.waitForFunction(()=>Math.abs(document.querySelector('video').currentTime-9)<1)
+      await page.locator('video').evaluate(async v=>{await v.play()})
+      await page.waitForFunction(()=>document.querySelector('video').currentTime>9.2)
+    }
+    if(slug==='localization'){
+      await page.getByRole('button',{name:'Play sequence'}).click()
+      await page.waitForFunction(()=>document.querySelector('button[aria-pressed=true]')?.textContent==='Resample poses')
+    }
+    if(slug==='surface-inclination'){
+      await page.getByLabel('Surface angle').press('End')
+      assert.match(await page.locator('.readout').innerText(),/55°/)
+      await page.getByRole('button',{name:'Raw returns'}).click()
+      assert.match(await page.locator('.method').innerText(),/Dense returns/)
+    }
+    await page.setViewportSize({width:360,height:800})
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))
+    passed('Case route, evidence and mobile layout: '+slug)
+  }
+  passed('Keeper retreat, video seek/playback, localization sequence and surface controls')
   assert.deepEqual(errors,[])
   passed('No page errors, console errors or failed asset requests observed')
   await writeFile('review/results.json',JSON.stringify({browser:browser.browser().version(),checks,errors},null,2))
 } finally {await browser.close()}
+
 

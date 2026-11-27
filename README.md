@@ -1,55 +1,27 @@
-﻿# Match Notebook
+﻿# Match Notebook · Muhammad Akbar Iqvi
 
-Prototype portfolio lokal Muhammad Akbar Iqvi. Implementasi React, TypeScript, Vite dan Three.js mengikuti halaman 2–3 dari Akbar-Visual-Review.pdf. Isi website berbahasa Inggris.
+Portfolio engineering interaktif berbahasa Inggris. Homepage memperkenalkan Akbar melalui potret, pekerjaan di Barelang FC, dan perjalanan robotika sejak 2024. Lima studi kasus memiliki URL sendiri. Tiga demo menjelaskan keputusan keeper, estimasi pose, dan kemiringan bidang dengan data sintetis.
 
 ## Menjalankan
 
-Gunakan Node.js 22.23.5 dan PowerShell dari direktori ini.
+Gunakan Node.js 22.23.5, lalu jalankan dari root checkout.
 
-```powershell
-npm.cmd ci --cache .local/npm
-npm.cmd run dev
-```
-
-Buka alamat lokal yang dicetak Vite, biasanya http://127.0.0.1:5173. Untuk menguji hasil produksi:
-
-```powershell
-npm.cmd run build
-npm.cmd run preview -- --port 4173 --strictPort
-```
-
-Dengan preview aktif, jalankan dari PowerShell kedua:
-
-```powershell
-$env:TEMP = "$pwd/.local/tmp"
-New-Item -ItemType Directory -Force $env:TEMP | Out-Null
-$env:TMP = $env:TEMP
-npm.cmd run qa
-```
-
-QA memakai Playwright dan Microsoft Edge terpasang. Variabel BROWSER_CHANNEL dan PREVIEW_URL dapat menyesuaikan browser serta alamat. Hasil disimpan di review/.
-
-## Review interaksi
-
-Gerakkan pointer di area pembuka, lalu keluar melalui header. Pilih **Full view** untuk melihat dudukan asli dan grid. Scroll untuk mengubah sudut pandang. Pada layar sentuh kecil dan saat reduced motion aktif, tombol tetap dapat mengganti framing foto. Buka **Read the field note** untuk membaca peran Akbar dalam keputusan keeper.
-
-## Struktur
-
-- src/main.tsx menyusun halaman, panel foto, dan Selected Work.
-- src/scene.ts mengelola kamera perspektif, texture plane, lantai, grid, bayangan dan siklus hidup canvas.
-- src/style.css menyimpan token warna, font lokal, breakpoint, fokus dan animasi judul.
-- public/media berisi turunan media untuk review lokal dan lisensi font.
-- scripts/qa.mjs menguji build melalui browser dan merekam screenshot.
-- .agents/skills dan AGENTS.md menyimpan instruksi handoff.
-- review/QA.md merangkum hasil pemeriksaan dan batas validasi.
-
-## Asal aset dan klaim
-
-| Elemen | Sumber pemilik | Penggunaan |
+| Langkah | Windows PowerShell | Ubuntu |
 | --- | --- | --- |
-| Robot No. 4 | robot42026.jpeg, Barelang FC | Cutout depan dari board discovery, termasuk dudukan. Framing detail dan elevasi menggunakan foto yang sama. |
-| Frame 00:04, 00:09, 00:14 | Recording 2026-11-26 043139.mp4 | Tiga still dari rekaman 35,4 detik. Timestamp menunjukkan waktu dalam video. |
-| Pertanyaan, peran dan deskripsi strategi | Board Match Notebook dan register PROFILE_AND_EVIDENCE | Estimasi jarak bola, pan/tilt kepala, maju dan mundur sesuai batas area. |
-| Open Sans Condensed Bold | Paket board discovery | Font lokal beserta pemberitahuan lisensi di public/media. |
+| Instal versi terkunci | npm.cmd ci --cache .local/npm | npm ci --cache .local/npm |
+| Development | npm.cmd run dev | npm run dev |
+| Typecheck dan build | npm.cmd run build | npm run build |
+| Preview build | npm.cmd run preview -- --port 4173 --strictPort | npm run preview -- --port 4173 --strictPort |
 
-Referensi asli, hasil ekstraksi dan register profil internal berada di workspace lokal, di luar checkpoint dan ZIP source. Pemakaian foto dan still untuk publikasi memerlukan pemeriksaan hak oleh pemilik. Fase ini berakhir pada review prototype.
+Buka http://127.0.0.1:4173 untuk preview produksi. Mode development biasanya memakai port 5173. Gunakan terminal kedua untuk QA saat preview aktif.
+
+## Review
+
+Gerakkan pointer pada hero dan pilih **Full view**. Buka timestamp pada featured story untuk melihat frame rekaman, lalu gunakan slider keeper. Dari Selected Work, coba urutan partikel pada halaman localization dan ubah normal bidang pada halaman depth. Pada mobile dan reduced motion, potret robot tetap dapat diganti framing.
+
+- [Handoff Windows dan Ubuntu](docs/DEVELOPMENT_HANDOFF.md)
+- [Asal media dan batas klaim](docs/media-evidence.md)
+- [Laporan QA](review/QA.md)
+- [Desktop](review/home-1440.png) dan [mobile](review/mobile-390.png)
+
+Semua turunan media untuk menjalankan situs tersedia di public/media. Arsip riset pribadi tetap disimpan lokal. Hak publikasi foto, footage dan potret perlu diperiksa pemilik sebelum distribusi publik, termasuk sebelum menjadikan repositori GitHub publik.
